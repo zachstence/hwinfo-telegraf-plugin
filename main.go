@@ -12,16 +12,16 @@ type SensorReadings struct {
 }
 
 func main() {
-	shmem, err := hwinfo.ReadSharedMem()
+	rawData, err := hwinfo.Read()
 	if err != nil {
 		fmt.Printf("ReadSharedMem failed: %v\n", err)
 	}
-	fmt.Printf("Found %d sensors and %d total readings", shmem.NumSensorElements(), shmem.NumReadingElements())
+	fmt.Printf("Found %d sensors and %d total readings", rawData.NumSensorElements(), rawData.NumReadingElements())
 
 	data := []SensorReadings{}
 
 	// Get sensors
-	for s := range shmem.IterSensors() {
+	for s := range rawData.IterSensors() {
 		data = append(data, SensorReadings{
 			sensor:   s,
 			readings: []hwinfo.Reading{},
@@ -29,7 +29,7 @@ func main() {
 	}
 
 	// Get readings
-	for r := range shmem.IterReadings() {
+	for r := range rawData.IterReadings() {
 		sensorIndex := int(r.SensorIndex())
 		if sensorIndex < len(data) {
 			data[sensorIndex].readings = append(data[sensorIndex].readings, r)

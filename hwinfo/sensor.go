@@ -1,9 +1,6 @@
 package hwinfo
 
-/*
-#include <windows.h>
-#include "hwisenssm2.h"
-*/
+// #include "hwisenssm2.h"
 import "C"
 
 import (

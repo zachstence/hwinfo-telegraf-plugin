@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"time"
 	"unsafe"
 
 	"hwinfo64-telegraf-plugin/hwinfo/shmem"
@@ -15,14 +14,14 @@ import (
 )
 
 // SharedMemory provides access to the HWiNFO shared memory
-type SharedMemory struct {
+type HWiNFO struct {
 	data  []byte
 	shmem C.PHWiNFO_SENSORS_SHARED_MEM2
 }
 
 // ReadSharedMem reads data from HWiNFO shared memory
 // creating a copy of the data
-func ReadSharedMem() (*SharedMemory, error) {
+func Read() (*HWiNFO, error) {
 	data, err := shmem.Read()
 	if err != nil {
 		return nil, err
@@ -33,7 +32,7 @@ func ReadSharedMem() (*SharedMemory, error) {
 		return nil, errors.New("no data exists in HWiNFO shared memory, do you have it enabled?")
 	}
 
-	shmem := &SharedMemory{
+	shmem := &HWiNFO{
 		data:  append([]byte(nil), data...),
 		shmem: C.PHWiNFO_SENSORS_SHARED_MEM2(unsafe.Pointer(&data[0])),
 	}
@@ -53,97 +52,72 @@ func ReadSharedMem() (*SharedMemory, error) {
 	return shmem, nil
 }
 
-// Result for streamed shared memory updates
-type Result struct {
-	Shmem *SharedMemory
-	Err   error
-}
-
-func readAndSend(ch chan<- Result) {
-	shmem, err := ReadSharedMem()
-	ch <- Result{Shmem: shmem, Err: err}
-}
-
-// StreamSharedMem delivers shared memory hardware sensors updates
-// over a channel
-func StreamSharedMem() <-chan Result {
-	ch := make(chan Result)
-	go func() {
-		readAndSend(ch)
-		// TODO: don't use time.Tick, cancellable?
-		for range time.Tick(1 * time.Second) {
-			readAndSend(ch)
-		}
-	}()
-	return ch
-}
-
 // Signature "HWiS" if active, 'DEAD' when inactive
-func (s *SharedMemory) Signature() string {
-	return util.DecodeCharPtr(unsafe.Pointer(&s.shmem.dwSignature), C.sizeof_DWORD)
+func (hwinfo *HWiNFO) Signature() string {
+	return util.DecodeCharPtr(unsafe.Pointer(&hwinfo.shmem.dwSignature), C.sizeof_DWORD)
 }
 
 // Version v1 is latest
-func (s *SharedMemory) Version() int {
-	return int(s.shmem.dwVersion)
+func (hwinfo *HWiNFO) Version() int {
+	return int(hwinfo.shmem.dwVersion)
 }
 
 // Revision revision of version
-func (s *SharedMemory) Revision() int {
-	return int(s.shmem.dwRevision)
+func (hwinfo *HWiNFO) Revision() int {
+	return int(hwinfo.shmem.dwRevision)
 }
 
 // PollTime last polling time
-func (s *SharedMemory) PollTime() uint64 {
-	addr := unsafe.Pointer(uintptr(unsafe.Pointer(&s.shmem.dwRevision)) + C.sizeof_DWORD)
+func (hwinfo *HWiNFO) PollTime() uint64 {
+	addr := unsafe.Pointer(uintptr(unsafe.Pointer(&hwinfo.shmem.dwRevision)) + C.sizeof_DWORD)
 	return uint64(*(*C.__time64_t)(addr))
 }
 
 // OffsetOfSensorSection offset of the Sensor section from beginning of HWiNFO_SENSORS_SHARED_MEM2
-func (s *SharedMemory) OffsetOfSensorSection() int {
-	return int(s.shmem.dwOffsetOfSensorSection)
+func (hwinfo *HWiNFO) OffsetOfSensorSection() int {
+	return int(hwinfo.shmem.dwOffsetOfSensorSection)
 }
 
 // SizeOfSensorElement size of each sensor element = sizeof( HWiNFO_SENSORS_SENSOR_ELEMENT )
-func (s *SharedMemory) SizeOfSensorElement() int {
-	return int(s.shmem.dwSizeOfSensorElement)
+func (hwinfo *HWiNFO) SizeOfSensorElement() int {
+	return int(hwinfo.shmem.dwSizeOfSensorElement)
 }
 
 // NumSensorElements number of sensor elements
-func (s *SharedMemory) NumSensorElements() int {
-	return int(s.shmem.dwNumSensorElements)
+func (hwinfo *HWiNFO) NumSensorElements() int {
+	return int(hwinfo.shmem.dwNumSensorElements)
 }
 
 // OffsetOfReadingSection offset of the Reading section from beginning of HWiNFO_SENSORS_SHARED_MEM2
-func (s *SharedMemory) OffsetOfReadingSection() int {
-	return int(s.shmem.dwOffsetOfReadingSection)
+func (hwinfo *HWiNFO) OffsetOfReadingSection() int {
+	return int(hwinfo.shmem.dwOffsetOfReadingSection)
 }
 
 // SizeOfReadingElement size of each Reading element = sizeof( HWiNFO_SENSORS_READING_ELEMENT )
-func (s *SharedMemory) SizeOfReadingElement() int {
-	return int(s.shmem.dwSizeOfReadingElement)
+func (hwinfo *HWiNFO) SizeOfReadingElement() int {
+	return int(hwinfo.shmem.dwSizeOfReadingElement)
 }
 
 // NumReadingElements number of Reading elements
-func (s *SharedMemory) NumReadingElements() int {
-	return int(s.shmem.dwNumReadingElements)
+func (hwinfo *HWiNFO) NumReadingElements() int {
+	return int(hwinfo.shmem.dwNumReadingElements)
 }
 
-func (s *SharedMemory) dataForSensor(pos int) ([]byte, error) {
-	if pos >= s.NumSensorElements() {
-		return nil, fmt.Errorf("dataForSensor pos out of range, %d for size %d", pos, s.NumSensorElements())
+func (hwinfo *HWiNFO) dataForSensor(pos int) ([]byte, error) {
+	if pos >= hwinfo.NumSensorElements() {
+		return nil, fmt.Errorf("dataForSensor pos out of range, %d for size %d", pos, hwinfo.NumSensorElements())
 	}
-	start := s.OffsetOfSensorSection() + (pos * s.SizeOfSensorElement())
-	end := start + s.SizeOfSensorElement()
-	return s.data[start:end], nil
+	start := hwinfo.OffsetOfSensorSection() + (pos * hwinfo.SizeOfSensorElement())
+	end := start + hwinfo.SizeOfSensorElement()
+	return hwinfo.data[start:end], nil
 }
 
 // IterSensors iterate over each sensor
-func (s *SharedMemory) IterSensors() <-chan Sensor {
+func (hwinfo *HWiNFO) IterSensors() <-chan Sensor {
 	ch := make(chan Sensor)
 	go func() {
-		for i := 0; i < s.NumSensorElements(); i++ {
-			data, err := s.dataForSensor(i)
+		for i := 0; i < hwinfo.NumSensorElements(); i++ {
+			data, err := hwinfo.dataForSensor(i)
 			if err != nil {
 				log.Fatalf("TODO: failed to read dataForSensor: %v", err)
 			}
@@ -154,21 +128,21 @@ func (s *SharedMemory) IterSensors() <-chan Sensor {
 	return ch
 }
 
-func (s *SharedMemory) dataForReading(pos int) ([]byte, error) {
-	if pos >= s.NumReadingElements() {
-		return nil, fmt.Errorf("dataForReading pos out of range, %d for size %d", pos, s.NumSensorElements())
+func (hwinfo *HWiNFO) dataForReading(pos int) ([]byte, error) {
+	if pos >= hwinfo.NumReadingElements() {
+		return nil, fmt.Errorf("dataForReading pos out of range, %d for size %d", pos, hwinfo.NumSensorElements())
 	}
-	start := s.OffsetOfReadingSection() + (pos * s.SizeOfReadingElement())
-	end := start + s.SizeOfReadingElement()
-	return s.data[start:end], nil
+	start := hwinfo.OffsetOfReadingSection() + (pos * hwinfo.SizeOfReadingElement())
+	end := start + hwinfo.SizeOfReadingElement()
+	return hwinfo.data[start:end], nil
 }
 
 // IterReadings iterate over each sensor
-func (s *SharedMemory) IterReadings() <-chan Reading {
+func (hwinfo *HWiNFO) IterReadings() <-chan Reading {
 	ch := make(chan Reading)
 	go func() {
-		for i := 0; i < s.NumReadingElements(); i++ {
-			data, err := s.dataForReading(i)
+		for i := 0; i < hwinfo.NumReadingElements(); i++ {
+			data, err := hwinfo.dataForReading(i)
 			if err != nil {
 				log.Fatalf("TODO: failed to read dataForReading: %v", err)
 			}
