@@ -5,7 +5,7 @@ import "C"
 import (
 	"github.com/hidez8891/shm"
 
-	"hwinfo-telegraf-plugin/hwinfo/mutex"
+	"hwinfo-telegraf-plugin/plugins/inputs/hwinfo/mutex"
 )
 
 // Arbitrary values chosen to somehow bound the size of the buffer we are creating

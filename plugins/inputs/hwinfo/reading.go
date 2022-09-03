@@ -8,7 +8,7 @@ import "C"
 import (
 	"unsafe"
 
-	"hwinfo-telegraf-plugin/hwinfo/util"
+	"hwinfo-telegraf-plugin/plugins/inputs/hwinfo/util"
 )
 
 // ReadingType enum of value/unit type for reading

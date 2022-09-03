@@ -9,8 +9,8 @@ import (
 	"log"
 	"unsafe"
 
-	"hwinfo-telegraf-plugin/hwinfo/shmem"
-	"hwinfo-telegraf-plugin/hwinfo/util"
+	"hwinfo-telegraf-plugin/plugins/inputs/hwinfo/shmem"
+	"hwinfo-telegraf-plugin/plugins/inputs/hwinfo/util"
 )
 
 // SharedMemory provides access to the HWiNFO shared memory

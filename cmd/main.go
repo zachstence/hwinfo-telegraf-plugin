@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"hwinfo-telegraf-plugin/hwinfo"
+	"hwinfo-telegraf-plugin/plugins/inputs/hwinfo"
 )
 
 type SensorReadings struct {
