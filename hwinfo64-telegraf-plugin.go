@@ -16,6 +16,7 @@ func main() {
 	if err != nil {
 		fmt.Printf("ReadSharedMem failed: %v\n", err)
 	}
+	fmt.Printf("Found %d sensors and %d total readings", shmem.NumSensorElements(), shmem.NumReadingElements())
 
 	data := []SensorReadings{}
 

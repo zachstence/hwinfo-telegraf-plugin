@@ -1,12 +1,10 @@
 package hwinfo
 
-/*
-#include <windows.h>
-#include "hwisenssm2.h"
-*/
+// #include "hwisenssm2.h"
 import "C"
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -25,15 +23,34 @@ type SharedMemory struct {
 // ReadSharedMem reads data from HWiNFO shared memory
 // creating a copy of the data
 func ReadSharedMem() (*SharedMemory, error) {
-	data, err := shmem.ReadBytes()
+	data, err := shmem.Read()
 	if err != nil {
 		return nil, err
 	}
 
-	return &SharedMemory{
+	// If first byte is empty, nothing was read
+	if data[0] == 0 {
+		return nil, errors.New("no data exists in HWiNFO shared memory, do you have it enabled?")
+	}
+
+	shmem := &SharedMemory{
 		data:  append([]byte(nil), data...),
 		shmem: C.PHWiNFO_SENSORS_SHARED_MEM2(unsafe.Pointer(&data[0])),
-	}, nil
+	}
+
+	// If we read less than expected, we're missing data
+	headerLength := C.sizeof_HWiNFO_SENSORS_SHARED_MEM2
+	sensorsLength := shmem.NumSensorElements() * C.sizeof_HWiNFO_SENSORS_SENSOR_ELEMENT
+	readingsLength := shmem.NumReadingElements() * C.sizeof_HWiNFO_SENSORS_READING_ELEMENT
+	expectedBytes := headerLength + sensorsLength + readingsLength
+
+	actualBytes := len(data)
+	if actualBytes < expectedBytes {
+		// TODO how to resolve this? Config options?
+		return nil, errors.New("didn't read full shared memory buffer")
+	}
+
+	return shmem, nil
 }
 
 // Result for streamed shared memory updates
