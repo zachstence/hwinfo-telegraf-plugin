@@ -7,7 +7,7 @@ import (
 	"sync"
 	"unsafe"
 
-	"hwinfo64-telegraf-plugin/hwinfo/util"
+	"hwinfo-telegraf-plugin/hwinfo/util"
 )
 
 var ghnd C.HANDLE

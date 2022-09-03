@@ -1,1 +1,1 @@
-# hwinfo64-telegraf-plugin
+# hwinfo-telegraf-plugin

@@ -1,4 +1,4 @@
-module hwinfo64-telegraf-plugin
+module hwinfo-telegraf-plugin
 
 go 1.19
 
