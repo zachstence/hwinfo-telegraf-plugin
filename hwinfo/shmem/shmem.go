@@ -6,7 +6,6 @@ package shmem
 */
 import "C"
 import (
-	"fmt"
 	"reflect"
 	"unsafe"
 
@@ -41,24 +40,20 @@ func copyBytes(addr uintptr) []byte {
 }
 
 func ReadBytes() ([]byte, error) {
-	fmt.Println("ReadBytes")
 	// Lock mutex and unlock after we are done reading
 	err := mutex.Lock()
 	defer mutex.Unlock()
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("Mutex locked")
 
 	// Open and read shared memory
-	r, err := shm.Open(C.HWiNFO_SENSORS_MAP_FILE_NAME2, C.HWiNFO_SENSORS_STRING_LEN2)
+	r, err := shm.Open(C.HWiNFO_SENSORS_MAP_FILE_NAME2, 200000)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("Shared memory opened")
 
 	r.Read(buf)
-	fmt.Println("Shared memory read")
 
 	r.Close()
 
