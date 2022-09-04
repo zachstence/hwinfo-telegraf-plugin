@@ -51,8 +51,10 @@ func (input *HWiNFOInput) Gather(a telegraf.Accumulator) error {
 
 	// Convert raw data to telegraf fields/tags
 	for _, datum := range data {
-		fields, tags := buildFieldsAndTags(datum)
-		a.AddFields("hwinfo", fields, tags)
+		metrics := buildFieldsAndTags(datum)
+		for _, metric := range metrics {
+			a.AddFields("hwinfo", metric.fields, metric.tags)
+		}
 	}
 
 	return nil
@@ -61,6 +63,11 @@ func (input *HWiNFOInput) Gather(a telegraf.Accumulator) error {
 // ============================================================================
 // Private helpers
 // ============================================================================
+
+type Metric struct {
+	fields map[string]interface{}
+	tags   map[string]string
+}
 
 type SensorReadings struct {
 	sensor   hwinfoInternal.Sensor
@@ -100,11 +107,36 @@ func (input *HWiNFOInput) gather() ([]SensorReadings, error) {
 	return data, nil
 }
 
-func buildFieldsAndTags(sensorReadings SensorReadings) (map[string]interface{}, map[string]string) {
-	fields := map[string]interface{}{
-		"field": "value",
-	}
-	tags := map[string]string{}
+func buildFieldsAndTags(sensorReadings SensorReadings) []Metric {
+	// `nil` and `""` values help us see the shape here and they don't get reported by telegraf
 
-	return fields, tags
+	fields := map[string]interface{}{
+		// See HWiNFO_SENSORS_READING_ELEMENT.tReading : HWiNFO_SENSORS_READING_ELEMENT.Value
+		"temp":    nil,
+		"volt":    nil,
+		"fan":     nil,
+		"current": nil,
+		"power":   nil,
+		"clock":   nil,
+		"usage":   nil,
+		"other":   nil,
+	}
+	tags := map[string]string{
+		// See HWiNFO_SENSORS_SENSOR_ELEMENT
+		"sensorId":       "",
+		"sensorInst":     "",
+		"sensorNameOrig": "",
+		"sensorName":     "",
+
+		// See HWiNFO_SENSORS_READING_ELEMENT
+		"readingId":       "",
+		"readingNameOrig": "",
+		"readingName":     "",
+		"unit":            "",
+	}
+
+	return []Metric{{
+		fields: fields,
+		tags:   tags,
+	}}
 }
