@@ -40,7 +40,7 @@ func (input *HWiNFOInput) SampleConfig() string {
 }
 
 func (input *HWiNFOInput) Description() string {
-	return "TODO"
+	return "Gather Windows system hardware information from HWiNFO"
 }
 
 func (input *HWiNFOInput) Gather(a telegraf.Accumulator) error {
