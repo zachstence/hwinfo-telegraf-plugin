@@ -1,7 +1,6 @@
 package hwinfo
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/influxdata/telegraf"
@@ -75,7 +74,7 @@ type SensorReadings struct {
 func (input *HWiNFOInput) gather() []SensorReadings {
 	rawData, err := hwinfoInternal.Read()
 	if err != nil {
-		fmt.Printf("ReadSharedMem failed: %v\n", err)
+		log.Fatal().Err(err).Send()
 	}
 
 	data := []SensorReadings{}
