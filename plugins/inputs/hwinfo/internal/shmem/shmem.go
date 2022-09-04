@@ -19,11 +19,8 @@ const totalLength = headerLength + sensorsLength + readingsLength
 
 func Read() ([]byte, error) {
 	// Lock mutex and unlock after we are done reading
-	err := mutex.Lock()
+	mutex.Lock()
 	defer mutex.Unlock()
-	if err != nil {
-		return nil, err
-	}
 
 	// Open and read shared memory
 	r, err := shm.Open(C.HWiNFO_SENSORS_MAP_FILE_NAME2, totalLength)
