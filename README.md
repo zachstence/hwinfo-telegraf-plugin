@@ -400,4 +400,3 @@ This project is subject to the the MIT License. See [LICENSE](./LICENSE) informa
 - Read header first to determine how large the buffer should be when reading from SHM
 - Config options?
 - Explanation/screenshots of optimal HWiNFO settings to run in the background
-- Map Yes/No fields from 0/1 -> false/true
