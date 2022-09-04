@@ -43,12 +43,18 @@ func (input *HWiNFOInput) Description() string {
 }
 
 func (input *HWiNFOInput) Gather(a telegraf.Accumulator) error {
-	fields, tags, err := input.gather()
+	// Gather data
+	data, err := input.gather()
 	if err != nil {
 		a.AddError(err)
 	}
 
-	a.AddFields("hwinfo", fields, tags)
+	// Convert raw data to telegraf fields/tags
+	for _, datum := range data {
+		fields, tags := buildFieldsAndTags(datum)
+		a.AddFields("hwinfo", fields, tags)
+	}
+
 	return nil
 }
 
@@ -61,7 +67,7 @@ type SensorReadings struct {
 	readings []hwinfoInternal.Reading
 }
 
-func (input *HWiNFOInput) gather() (map[string]interface{}, map[string]string, error) {
+func (input *HWiNFOInput) gather() ([]SensorReadings, error) {
 	rawData, err := hwinfoInternal.Read()
 	if err != nil {
 		fmt.Printf("ReadSharedMem failed: %v\n", err)
@@ -91,8 +97,14 @@ func (input *HWiNFOInput) gather() (map[string]interface{}, map[string]string, e
 	fmt.Println(data[1].sensor.NameOrig(), data[1].readings[39].LabelOrig(), data[1].readings[39].Value(), data[1].readings[39].Unit())
 	// -> CPU [#0]: AMD Ryzen 5 5600X Total CPU Usage 6.158333333333334 %
 
-	// TODO translate raw data to telegraf fields/tags
-	return map[string]interface{}{
-		"test": "value",
-	}, map[string]string{}, nil
+	return data, nil
+}
+
+func buildFieldsAndTags(sensorReadings SensorReadings) (map[string]interface{}, map[string]string) {
+	fields := map[string]interface{}{
+		"field": "value",
+	}
+	tags := map[string]string{}
+
+	return fields, tags
 }
