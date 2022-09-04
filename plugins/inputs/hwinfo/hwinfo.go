@@ -49,12 +49,16 @@ func (input *HWiNFOInput) Gather(a telegraf.Accumulator) error {
 	data := input.gather()
 
 	// Convert raw data to telegraf fields/tags
+	log.Debug().Msg("Converting metrics...")
+	writeCount := 0
 	for _, datum := range data {
 		metrics := buildFieldsAndTags(datum)
 		for _, metric := range metrics {
 			a.AddFields("hwinfo", metric.fields, metric.tags)
+			writeCount++
 		}
 	}
+	log.Debug().Msgf("Wrote %d metrics", writeCount)
 
 	log.Debug().Msg("Done gathering metrics")
 	return nil
@@ -79,37 +83,37 @@ func (input *HWiNFOInput) gather() []SensorReadings {
 	if err != nil {
 		log.Fatal().Err(err).Send()
 	}
-	log.Debug().Msgf("Found %d sensors and %d readings", rawData.NumSensorElements(), rawData.NumReadingElements())
+	log.Debug().Msgf("Found %d sensors with a total of %d readings", rawData.NumSensorElements(), rawData.NumReadingElements())
 
 	data := []SensorReadings{}
 
 	// Get sensors
-	sensors, errs := rawData.IterSensors()
-	for e := range errs {
-		log.Error().Err(e).Send()
-	}
-
-	for s := range sensors {
-		data = append(data, SensorReadings{
-			sensor:   s,
-			readings: []hwinfoInternal.Reading{},
-		})
-	}
-
-	// Get readings
-	readings, errs := rawData.IterReadings()
-	for e := range errs {
-		log.Error().Err(e).Send()
-	}
-
-	for r := range readings {
-		sensorIndex := int(r.SensorIndex())
-		if sensorIndex < len(data) {
-			data[sensorIndex].readings = append(data[sensorIndex].readings, r)
+	for s := range rawData.IterSensors() {
+		if s.Error != nil {
+			log.Error().Err(s.Error).Send()
 		} else {
-			log.Error().Msgf("sensor index out of range, attempting to access index %d, but %d sensors found ", sensorIndex, len(data))
+			data = append(data, SensorReadings{
+				sensor:   s.Sensor,
+				readings: []hwinfoInternal.Reading{},
+			})
 		}
 	}
+	log.Debug().Msgf("Processed %d sensors", rawData.NumSensorElements())
+
+	// Get readings
+	for r := range rawData.IterReadings() {
+		if r.Error != nil {
+			log.Error().Err(r.Error).Send()
+		} else {
+			sensorIndex := int(r.Reading.SensorIndex())
+			if sensorIndex < len(data) {
+				data[sensorIndex].readings = append(data[sensorIndex].readings, r.Reading)
+			} else {
+				log.Error().Msgf("sensor index out of range, attempting to access index %d, but %d sensors found ", sensorIndex, len(data))
+			}
+		}
+	}
+	log.Debug().Msgf("Processed %d readings", rawData.NumReadingElements())
 
 	return data
 }

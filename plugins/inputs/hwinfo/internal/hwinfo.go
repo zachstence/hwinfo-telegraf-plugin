@@ -117,22 +117,31 @@ func (hwinfo *HWiNFO) dataForSensor(pos int) ([]byte, error) {
 	return hwinfo.data[start:end], nil
 }
 
+type SensorResult struct {
+	Sensor Sensor
+	Error  error
+}
+
 // IterSensors iterate over each sensor
-func (hwinfo *HWiNFO) IterSensors() (<-chan Sensor, <-chan error) {
-	resultCh := make(chan Sensor)
-	errorCh := make(chan error)
+func (hwinfo *HWiNFO) IterSensors() <-chan SensorResult {
+	resultCh := make(chan SensorResult)
 
 	go func() {
 		for i := 0; i < hwinfo.NumSensorElements(); i++ {
 			data, err := hwinfo.dataForSensor(i)
 			if err != nil {
-				errorCh <- fmt.Errorf("failed getting sensor at index %d, %v", i, err)
+				resultCh <- SensorResult{
+					Error: fmt.Errorf("failed getting sensor at index %d, %v", i, err),
+				}
+			} else {
+				resultCh <- SensorResult{
+					Sensor: NewSensor(data),
+				}
 			}
-			resultCh <- NewSensor(data)
 		}
 		close(resultCh)
 	}()
-	return resultCh, errorCh
+	return resultCh
 }
 
 func (hwinfo *HWiNFO) dataForReading(pos int) ([]byte, error) {
@@ -144,20 +153,29 @@ func (hwinfo *HWiNFO) dataForReading(pos int) ([]byte, error) {
 	return hwinfo.data[start:end], nil
 }
 
+type ReadingResult struct {
+	Reading Reading
+	Error   error
+}
+
 // IterReadings iterate over each sensor
-func (hwinfo *HWiNFO) IterReadings() (<-chan Reading, <-chan error) {
-	resultCh := make(chan Reading)
-	errorCh := make(chan error)
+func (hwinfo *HWiNFO) IterReadings() <-chan ReadingResult {
+	resultCh := make(chan ReadingResult)
 
 	go func() {
 		for i := 0; i < hwinfo.NumReadingElements(); i++ {
 			data, err := hwinfo.dataForReading(i)
 			if err != nil {
-				errorCh <- fmt.Errorf("failed getting reading at index %d, %v", i, err)
+				resultCh <- ReadingResult{
+					Error: fmt.Errorf("failed getting reading at index %d, %v", i, err),
+				}
+			} else {
+				resultCh <- ReadingResult{
+					Reading: NewReading(data),
+				}
 			}
-			resultCh <- NewReading(data)
 		}
 		close(resultCh)
 	}()
-	return resultCh, errorCh
+	return resultCh
 }
