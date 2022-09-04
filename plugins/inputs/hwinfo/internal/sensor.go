@@ -15,6 +15,19 @@ type Sensor struct {
 	cs C.PHWiNFO_SENSORS_SENSOR_ELEMENT
 }
 
+// Type of sensor (the kind of hardware, i.e. cpu, gpu, drive)
+type SensorType string
+
+const (
+	System  SensorType = "system"
+	CPU     SensorType = "cpu"
+	SMART   SensorType = "smart"
+	Drive   SensorType = "drive"
+	GPU     SensorType = "gpu"
+	Network SensorType = "network"
+	Unknown SensorType = "unknown"
+)
+
 // NewSensor constructs a Sensor
 func NewSensor(data []byte) Sensor {
 	return Sensor{
@@ -46,4 +59,26 @@ func (s *Sensor) NameOrig() string {
 // NameUser sensor name displayed, which might have been renamed by user
 func (s *Sensor) NameUser() string {
 	return util.DecodeCharPtr(unsafe.Pointer(&s.cs.szSensorNameUser), C.HWiNFO_SENSORS_STRING_LEN2)
+}
+
+// TODO I wish there was a better way to do this, ideally something provided explicitly bw HWiNFO
+// A dynamic value computed by looking at other fields of the sensor
+func (s *Sensor) SensorType() SensorType {
+	name := s.NameOrig()
+
+	if util.StartsWithLower(name, "system") {
+		return System
+	} else if util.StartsWithLower(name, "cpu") {
+		return CPU
+	} else if util.StartsWithLower(name, "s.m.a.r.t.") {
+		return SMART
+	} else if util.StartsWithLower(name, "drive") {
+		return Drive
+	} else if util.StartsWithLower(name, "gpu") {
+		return GPU
+	} else if util.StartsWithLower(name, "network") {
+		return Network
+	} else {
+		return Unknown
+	}
 }

@@ -59,3 +59,10 @@ var isodecoder = charmap.ISO8859_1.NewDecoder()
 func decodeISO8859_1(in string) (string, error) {
 	return isodecoder.String(in)
 }
+
+func StartsWithLower(str string, substr string) bool {
+	_str := strings.ToLower(str)
+	_substr := strings.ToLower(substr)
+
+	return strings.HasPrefix(_str, _substr)
+}
