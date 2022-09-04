@@ -3,7 +3,7 @@ This [Telegraf](https://www.influxdata.com/time-series-platform/telegraf/) plugi
 
 - [hwinfo-telegraf-plugin](#hwinfo-telegraf-plugin)
   * [Installation](#installation)
-    + [Download `.exe`](#download--exe-)
+    + [Download `.exe`](#download-exe)
     + [Build From Source](#build-from-source)
     + [Limitations](#limitations)
   * [Configuration](#configuration)
@@ -15,15 +15,13 @@ This [Telegraf](https://www.influxdata.com/time-series-platform/telegraf/) plugi
   * [License](#license)
   * [Future Plans](#future-plans)
 
-<small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
-
 ---
 
 <br />
 
 ## Installation
 ### Download `.exe`
-Coming soon!
+Simply download `hwinfo-telegraf-plugin.exe` from the [latest release](https://github.com/zachstence/hwinfo-telegraf-plugin/releases).
 
 ### Build From Source
 *These instructions assume you have Go installed and configured on your machine*
@@ -39,6 +37,7 @@ Build the module into an executable
 go build -o hwinfo-telegraf-plugin.exe cmd/main.go
 ```
 
+## Usage
 Reference the executable and config in your `telegraf.conf` using the `execd` input
 ```toml
 [[inputs.execd]]
