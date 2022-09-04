@@ -59,7 +59,7 @@ At this time, no configuration options are available. If you have a need for one
 
 ```toml @sample.conf
 [[inputs.hwinfo]]
-	# no config
+  # no config
 ```
 
 ## Metrics
