@@ -52,7 +52,7 @@ More documentation on using Telegraf external plugins can be found [here](https:
 
 Regardless of the installation method used, access to the HWiNFO Shared Memory Interface (where this plugin gets data from) is limited to 12 hours at a time. After running HWiNFO for 12 hours continuously, Shared Memory access will need to be re-enabled manually.
 
-The [Pro version](https://www.hwinfo.com/licenses/) of HWiNFO does not have this limitation, so it (and this plugin) can be run indefinitely without interruption. I encourage you to purchase a Pro license to support the amazing work done by @malikm.
+The [Pro version](https://www.hwinfo.com/licenses/) of HWiNFO does not have this limitation, so it (and this plugin) can be run indefinitely without interruption. I encourage you to purchase a Pro license to support the amazing work done by [@malikm](https://github.com/malikm).
 
 ## Configuration
 At this time, no configuration options are available. If you have a need for one, feel free to open up an issue or PR!
@@ -344,7 +344,7 @@ hwinfo,readingId=134217728,readingName=Total\ Errors,readingNameOrig=Total\ Erro
 Coming soon!
 
 ## Credits
-[HWiNFO](https://www.hwinfo.com/) is a fantastic tool for monitoring hardware on a windows system. It covers more hardware and sensors than anything else I know of, and the author @malikm is actively developing it. You can purchase a Pro license [here](https://www.hwinfo.com/licenses/).
+[HWiNFO](https://www.hwinfo.com/) is a fantastic tool for monitoring hardware on a windows system. It covers more hardware and sensors than anything else I know of, and the author [@malikm](https://github.com/malikm) is actively developing it. You can purchase a Pro license [here](https://www.hwinfo.com/licenses/).
 
 Both the inspiration for and foundation of this project came from [hwinfo-streamdeck](https://github.com/shayne/hwinfo-streamdeck), a plugin for the Elgato StreamDeck that shows sensor readings from HWiNFO.
 
