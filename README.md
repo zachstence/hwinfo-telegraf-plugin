@@ -3,19 +3,19 @@ This [Telegraf](https://www.influxdata.com/time-series-platform/telegraf/) plugi
 
 - [hwinfo-telegraf-plugin](#hwinfo-telegraf-plugin)
   * [Installation](#installation)
-    + [Download `.exe`](#download--exe-)
+    + [Download `.exe`](#download-exe)
     + [Build From Source](#build-from-source)
+  * [Usage](#usage)
     + [Limitations](#limitations)
   * [Configuration](#configuration)
   * [Metrics](#metrics)
     + [Types](#types)
     + [Example Output](#example-output)
+    + [Example Influx Query](#example-influx-query)
   * [Grafana Dashboard](#grafana-dashboard)
   * [Credits](#credits)
   * [License](#license)
   * [Future Plans](#future-plans)
-
-<small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
 
 ---
 
@@ -23,7 +23,7 @@ This [Telegraf](https://www.influxdata.com/time-series-platform/telegraf/) plugi
 
 ## Installation
 ### Download `.exe`
-Coming soon!
+Simply download `hwinfo-telegraf-plugin.exe` from the [latest release](https://github.com/zachstence/hwinfo-telegraf-plugin/releases).
 
 ### Build From Source
 *These instructions assume you have Go installed and configured on your machine*
@@ -39,11 +39,11 @@ Build the module into an executable
 go build -o hwinfo-telegraf-plugin.exe cmd/main.go
 ```
 
+## Usage
 Reference the executable and config in your `telegraf.conf` using the `execd` input
 ```toml
 [[inputs.execd]]
-  command = ["/path/to/hwinfo-telegraf-plugin.exe"]
-  signal = "STDIN"
+  command = ["/path/to/hwinfo-telegraf-plugin.exe"] # no config
 ```
 
 More documentation on using Telegraf external plugins can be found [here](https://github.com/influxdata/telegraf/blob/master/docs/EXTERNAL_PLUGINS.md).
@@ -54,14 +54,14 @@ More documentation on using Telegraf external plugins can be found [here](https:
 
 Regardless of the installation method used, access to the HWiNFO Shared Memory Interface (where this plugin gets data from) is limited to 12 hours at a time. After running HWiNFO for 12 hours continuously, Shared Memory access will need to be re-enabled manually.
 
-The [Pro version](https://www.hwinfo.com/licenses/) of HWiNFO does not have this limitation, so it (and this plugin) can be run indefinitely without interruption. I encourage you to purchase a Pro license to support the amazing work done by @malikm.
+The [Pro version](https://www.hwinfo.com/licenses/) of HWiNFO does not have this limitation, so it (and this plugin) can be run indefinitely without interruption. I encourage you to purchase a Pro license to support the amazing work done by [@malikm](https://github.com/malikm).
 
 ## Configuration
 At this time, no configuration options are available. If you have a need for one, feel free to open up an issue or PR!
 
 ```toml @sample.conf
 [[inputs.hwinfo]]
-	# no config
+  # no config
 ```
 
 ## Metrics
@@ -387,16 +387,18 @@ hwinfo,readingId=134217728,readingName=Total\ Errors,readingNameOrig=Total\ Erro
 Coming soon!
 
 ## Credits
-[HWiNFO](https://www.hwinfo.com/) is a fantastic tool for monitoring hardware on a windows system. It covers more hardware and sensors than anything else I know of, and the author @malikm is actively developing it. You can purchase a Pro license [here](https://www.hwinfo.com/licenses/).
+[HWiNFO](https://www.hwinfo.com/) is a fantastic tool for monitoring hardware on a windows system. It covers more hardware and sensors than anything else I know of, and the author [@malikm](https://github.com/malikm) is actively developing it. You can purchase a Pro license [here](https://www.hwinfo.com/licenses/).
 
 Both the inspiration for and foundation of this project came from [hwinfo-streamdeck](https://github.com/shayne/hwinfo-streamdeck), a plugin for the Elgato StreamDeck that shows sensor readings from HWiNFO.
 
 The structure of this external plugin followed [this template](https://github.com/ssoroka/rand) provided in the Telegraf documentation.
 
 ## License
-This project is subject to the the MIT License. See LICENSE information for details.
+This project is subject to the the MIT License. See [LICENSE](./LICENSE) information for details.
 
 ## Future Plans
-- Add a warning when access is denied due to not running as Administrator
+- Add a descriptive errpr when access is denied due to not running as Administrator
+- Add a descriptive error when plugin fails due to SHM being turned off by HWiNFO free
 - Read header first to determine how large the buffer should be when reading from SHM
 - Config options?
+- Explanation/screenshots of optimal HWiNFO settings to run in the background
