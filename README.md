@@ -339,6 +339,8 @@ hwinfo,readingId=134217731,readingName=Current\ UP\ rate,readingNameOrig=Current
 hwinfo,readingId=134217728,readingName=Total\ Errors,readingNameOrig=Total\ Errors,sensorId=402653558400,sensorInst=0,sensorName=Windows\ Hardware\ Errors\ (WHEA),sensorNameOrig=Windows\ Hardware\ Errors\ (WHEA) other=0 1662262139031253300
 ```
 
+### Example Influx Query
+![Example Influx Query](./images/influx.png)
 
 ## Grafana Dashboard
 Coming soon!
