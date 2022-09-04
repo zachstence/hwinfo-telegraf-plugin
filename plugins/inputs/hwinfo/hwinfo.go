@@ -79,7 +79,6 @@ func (input *HWiNFOInput) gather() ([]SensorReadings, error) {
 	if err != nil {
 		fmt.Printf("ReadSharedMem failed: %v\n", err)
 	}
-	fmt.Printf("Found %d sensors and %d total readings", rawData.NumSensorElements(), rawData.NumReadingElements())
 
 	data := []SensorReadings{}
 
