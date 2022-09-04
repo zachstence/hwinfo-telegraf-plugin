@@ -41,8 +41,7 @@ go build -o hwinfo-telegraf-plugin.exe cmd/main.go
 Reference the executable and config in your `telegraf.conf` using the `execd` input
 ```toml
 [[inputs.execd]]
-  command = ["/path/to/hwinfo-telegraf-plugin.exe"]
-  signal = "STDIN"
+  command = ["/path/to/hwinfo-telegraf-plugin.exe"] # no config
 ```
 
 More documentation on using Telegraf external plugins can be found [here](https://github.com/influxdata/telegraf/blob/master/docs/EXTERNAL_PLUGINS.md).
