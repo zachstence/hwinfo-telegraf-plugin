@@ -351,7 +351,7 @@ Both the inspiration for and foundation of this project came from [hwinfo-stream
 The structure of this external plugin followed [this template](https://github.com/ssoroka/rand) provided in the Telegraf documentation.
 
 ## License
-This project is subject to the the MIT License. See LICENSE information for details.
+This project is subject to the the MIT License. See [LICENSE](./LICENSE) information for details.
 
 ## Future Plans
 - Add a warning when access is denied due to not running as Administrator
