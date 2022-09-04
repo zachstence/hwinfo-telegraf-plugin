@@ -13,9 +13,13 @@ This [Telegraf](https://www.influxdata.com/time-series-platform/telegraf/) plugi
   * [Grafana Dashboard](#grafana-dashboard)
   * [Credits](#credits)
   * [License](#license)
+  * [Future Plans](#future-plans)
 
 <small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
 
+---
+
+<br />
 
 ## Installation
 ### Download `.exe`
@@ -348,3 +352,8 @@ The structure of this external plugin followed [this template](https://github.co
 
 ## License
 This project is subject to the the MIT License. See LICENSE information for details.
+
+## Future Plans
+- Add a warning when access is denied due to not running as Administrator
+- Read header first to determine how large the buffer should be when reading from SHM
+- Config options?
