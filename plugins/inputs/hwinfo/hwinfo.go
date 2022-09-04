@@ -2,6 +2,7 @@ package hwinfo
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/influxdata/telegraf"
 	"github.com/influxdata/telegraf/plugins/inputs"
@@ -108,35 +109,36 @@ func (input *HWiNFOInput) gather() ([]SensorReadings, error) {
 }
 
 func buildFieldsAndTags(sensorReadings SensorReadings) []Metric {
-	// `nil` and `""` values help us see the shape here and they don't get reported by telegraf
+	metrics := []Metric{}
 
-	fields := map[string]interface{}{
-		// See HWiNFO_SENSORS_READING_ELEMENT.tReading : HWiNFO_SENSORS_READING_ELEMENT.Value
-		"temp":    nil,
-		"volt":    nil,
-		"fan":     nil,
-		"current": nil,
-		"power":   nil,
-		"clock":   nil,
-		"usage":   nil,
-		"other":   nil,
+	sensor := sensorReadings.sensor
+	readings := sensorReadings.readings
+
+	for _, reading := range readings {
+		readingType := reading.Type().String()
+		readingValue := reading.Value()
+
+		fields := map[string]interface{}{
+			(readingType): readingValue,
+		}
+
+		tags := map[string]string{
+			"sensorId":       sensor.ID(),
+			"sensorInst":     strconv.FormatUint(sensor.SensorInst(), 16),
+			"sensorNameOrig": sensor.NameOrig(),
+			"sensorName":     sensor.NameUser(),
+
+			"readingId":       strconv.FormatInt(int64(reading.ID()), 10),
+			"readingNameOrig": reading.LabelOrig(),
+			"readingName":     reading.LabelUser(),
+			"unit":            reading.Unit(),
+		}
+
+		metrics = append(metrics, Metric{
+			fields: fields,
+			tags:   tags,
+		})
 	}
-	tags := map[string]string{
-		// See HWiNFO_SENSORS_SENSOR_ELEMENT
-		"sensorId":       "",
-		"sensorInst":     "",
-		"sensorNameOrig": "",
-		"sensorName":     "",
 
-		// See HWiNFO_SENSORS_READING_ELEMENT
-		"readingId":       "",
-		"readingNameOrig": "",
-		"readingName":     "",
-		"unit":            "",
-	}
-
-	return []Metric{{
-		fields: fields,
-		tags:   tags,
-	}}
+	return metrics
 }

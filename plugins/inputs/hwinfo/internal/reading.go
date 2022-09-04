@@ -36,7 +36,7 @@ const (
 )
 
 func (t ReadingType) String() string {
-	return [...]string{"None", "Temp", "Volt", "Fan", "Current", "Power", "Clock", "Usage", "Other"}[t]
+	return [...]string{"none", "temp", "volt", "fan", "current", "power", "clock", "usage", "other"}[t]
 }
 
 // Reading element (e.g. usage, power, mhz...)
