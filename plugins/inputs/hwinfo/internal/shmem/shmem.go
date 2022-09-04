@@ -3,7 +3,10 @@ package shmem
 // #include "../hwisenssm2.h"
 import "C"
 import (
+	"fmt"
+
 	"github.com/hidez8891/shm"
+	"github.com/rs/zerolog/log"
 
 	"github.com/zachstence/hwinfo-telegraf-plugin/plugins/inputs/hwinfo/internal/mutex"
 )
@@ -25,6 +28,9 @@ func Read() ([]byte, error) {
 	// Open and read shared memory
 	r, err := shm.Open(C.HWiNFO_SENSORS_MAP_FILE_NAME2, totalLength)
 	if err != nil {
+		if isAccessDeniedErr(err) {
+			log.Fatal().Err(err).Msg("could not access HWiNFO shared memory, is this plugin running as Administrator?")
+		}
 		return nil, err
 	}
 	buf := make([]byte, totalLength)
@@ -32,4 +38,9 @@ func Read() ([]byte, error) {
 	r.Close()
 
 	return buf, nil
+}
+
+func isAccessDeniedErr(err error) bool {
+	errStr := fmt.Sprintf("%v", err)
+	return errStr == "CreateFileMapping: Access is denied."
 }

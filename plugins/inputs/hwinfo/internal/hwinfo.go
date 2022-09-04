@@ -4,10 +4,10 @@ package hwinfo
 import "C"
 
 import (
-	"errors"
 	"fmt"
-	"log"
 	"unsafe"
+
+	"github.com/rs/zerolog/log"
 
 	"github.com/zachstence/hwinfo-telegraf-plugin/plugins/inputs/hwinfo/internal/mutex"
 	"github.com/zachstence/hwinfo-telegraf-plugin/plugins/inputs/hwinfo/internal/shmem"
@@ -30,7 +30,7 @@ func Read() (*HWiNFO, error) {
 
 	// If first byte is empty, nothing was read
 	if data[0] == 0 {
-		return nil, errors.New("no data exists in HWiNFO shared memory, do you have it enabled?")
+		log.Fatal().Msg("no data exists in HWiNFO shared memory, do you have it enabled?")
 	}
 
 	shmem := &HWiNFO{
@@ -46,8 +46,8 @@ func Read() (*HWiNFO, error) {
 
 	actualBytes := len(data)
 	if actualBytes < expectedBytes {
-		// TODO how to resolve this? Config options?
-		return nil, errors.New("didn't read full shared memory buffer")
+		// TODO how to resolve this? Config options? Read header first to determine buffer size?
+		log.Fatal().Msg("didn't read full shared memory buffer")
 	}
 
 	return shmem, nil
@@ -118,19 +118,21 @@ func (hwinfo *HWiNFO) dataForSensor(pos int) ([]byte, error) {
 }
 
 // IterSensors iterate over each sensor
-func (hwinfo *HWiNFO) IterSensors() <-chan Sensor {
-	ch := make(chan Sensor)
+func (hwinfo *HWiNFO) IterSensors() (<-chan Sensor, <-chan error) {
+	resultCh := make(chan Sensor)
+	errorCh := make(chan error)
+
 	go func() {
 		for i := 0; i < hwinfo.NumSensorElements(); i++ {
 			data, err := hwinfo.dataForSensor(i)
 			if err != nil {
-				log.Fatalf("TODO: failed to read dataForSensor: %v", err)
+				errorCh <- fmt.Errorf("failed getting sensor at index %d, %v", i, err)
 			}
-			ch <- NewSensor(data)
+			resultCh <- NewSensor(data)
 		}
-		close(ch)
+		close(resultCh)
 	}()
-	return ch
+	return resultCh, errorCh
 }
 
 func (hwinfo *HWiNFO) dataForReading(pos int) ([]byte, error) {
@@ -143,17 +145,19 @@ func (hwinfo *HWiNFO) dataForReading(pos int) ([]byte, error) {
 }
 
 // IterReadings iterate over each sensor
-func (hwinfo *HWiNFO) IterReadings() <-chan Reading {
-	ch := make(chan Reading)
+func (hwinfo *HWiNFO) IterReadings() (<-chan Reading, <-chan error) {
+	resultCh := make(chan Reading)
+	errorCh := make(chan error)
+
 	go func() {
 		for i := 0; i < hwinfo.NumReadingElements(); i++ {
 			data, err := hwinfo.dataForReading(i)
 			if err != nil {
-				log.Fatalf("TODO: failed to read dataForReading: %v", err)
+				errorCh <- fmt.Errorf("failed getting reading at index %d, %v", i, err)
 			}
-			ch <- NewReading(data)
+			resultCh <- NewReading(data)
 		}
-		close(ch)
+		close(resultCh)
 	}()
-	return ch
+	return resultCh, errorCh
 }

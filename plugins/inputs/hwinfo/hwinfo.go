@@ -6,6 +6,7 @@ import (
 
 	"github.com/influxdata/telegraf"
 	"github.com/influxdata/telegraf/plugins/inputs"
+	"github.com/rs/zerolog/log"
 
 	hwinfoInternal "github.com/zachstence/hwinfo-telegraf-plugin/plugins/inputs/hwinfo/internal"
 )
@@ -44,10 +45,7 @@ func (input *HWiNFOInput) Description() string {
 
 func (input *HWiNFOInput) Gather(a telegraf.Accumulator) error {
 	// Gather data
-	data, err := input.gather()
-	if err != nil {
-		a.AddError(err)
-	}
+	data := input.gather()
 
 	// Convert raw data to telegraf fields/tags
 	for _, datum := range data {
@@ -74,7 +72,7 @@ type SensorReadings struct {
 	readings []hwinfoInternal.Reading
 }
 
-func (input *HWiNFOInput) gather() ([]SensorReadings, error) {
+func (input *HWiNFOInput) gather() []SensorReadings {
 	rawData, err := hwinfoInternal.Read()
 	if err != nil {
 		fmt.Printf("ReadSharedMem failed: %v\n", err)
@@ -83,7 +81,12 @@ func (input *HWiNFOInput) gather() ([]SensorReadings, error) {
 	data := []SensorReadings{}
 
 	// Get sensors
-	for s := range rawData.IterSensors() {
+	sensors, errs := rawData.IterSensors()
+	for e := range errs {
+		log.Error().Err(e).Send()
+	}
+
+	for s := range sensors {
 		data = append(data, SensorReadings{
 			sensor:   s,
 			readings: []hwinfoInternal.Reading{},
@@ -91,16 +94,21 @@ func (input *HWiNFOInput) gather() ([]SensorReadings, error) {
 	}
 
 	// Get readings
-	for r := range rawData.IterReadings() {
+	readings, errs := rawData.IterReadings()
+	for e := range errs {
+		log.Error().Err(e).Send()
+	}
+
+	for r := range readings {
 		sensorIndex := int(r.SensorIndex())
 		if sensorIndex < len(data) {
 			data[sensorIndex].readings = append(data[sensorIndex].readings, r)
 		} else {
-			fmt.Printf("sensor index out of range, attempting to access index %d, but %d sensors found ", sensorIndex, len(data))
+			log.Error().Msgf("sensor index out of range, attempting to access index %d, but %d sensors found ", sensorIndex, len(data))
 		}
 	}
 
-	return data, nil
+	return data
 }
 
 func buildFieldsAndTags(sensorReadings SensorReadings) []Metric {
