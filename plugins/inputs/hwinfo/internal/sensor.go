@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"unsafe"
 
-	"hwinfo-telegraf-plugin/plugins/inputs/hwinfo/util"
+	"github.com/zachstence/hwinfo-telegraf-plugin/plugins/inputs/hwinfo/internal/util"
 )
 
 // Sensor element (e.g. motherboard, cpu, gpu...)
