@@ -9,6 +9,7 @@ import (
 	"log"
 	"unsafe"
 
+	"github.com/zachstence/hwinfo-telegraf-plugin/plugins/inputs/hwinfo/internal/mutex"
 	"github.com/zachstence/hwinfo-telegraf-plugin/plugins/inputs/hwinfo/internal/shmem"
 	"github.com/zachstence/hwinfo-telegraf-plugin/plugins/inputs/hwinfo/internal/util"
 )
@@ -50,6 +51,10 @@ func Read() (*HWiNFO, error) {
 	}
 
 	return shmem, nil
+}
+
+func UnlockMutex() {
+	mutex.Unlock()
 }
 
 // Signature "HWiS" if active, 'DEAD' when inactive

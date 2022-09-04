@@ -8,7 +8,6 @@ import (
 	"github.com/influxdata/telegraf/plugins/inputs"
 
 	hwinfoInternal "github.com/zachstence/hwinfo-telegraf-plugin/plugins/inputs/hwinfo/internal"
-	"github.com/zachstence/hwinfo-telegraf-plugin/plugins/inputs/hwinfo/internal/mutex"
 )
 
 // ============================================================================
@@ -29,7 +28,7 @@ func (input *HWiNFOInput) Init() error {
 
 func (input *HWiNFOInput) Stop() {
 	// Make sure mutex is unlocked before stopping
-	mutex.Unlock()
+	hwinfoInternal.UnlockMutex()
 }
 
 func (input *HWiNFOInput) SampleConfig() string {
