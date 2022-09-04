@@ -102,9 +102,6 @@ func (input *HWiNFOInput) gather() ([]SensorReadings, error) {
 		}
 	}
 
-	fmt.Println(data[1].sensor.NameOrig(), data[1].readings[39].LabelOrig(), data[1].readings[39].Value(), data[1].readings[39].Unit())
-	// -> CPU [#0]: AMD Ryzen 5 5600X Total CPU Usage 6.158333333333334 %
-
 	return data, nil
 }
 
