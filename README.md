@@ -1,6 +1,22 @@
 # hwinfo-telegraf-plugin
 This [Telegraf](https://www.influxdata.com/time-series-platform/telegraf/) plugin gathers hardware sensor readings (clock speed, temperature, utilization) from a Windows machine running [HWiNFO](https://www.hwinfo.com/).
 
+- [hwinfo-telegraf-plugin](#hwinfo-telegraf-plugin)
+  * [Installation](#installation)
+    + [Download `.exe`](#download--exe-)
+    + [Build From Source](#build-from-source)
+    + [Limitations](#limitations)
+  * [Configuration](#configuration)
+  * [Metrics](#metrics)
+    + [Types](#types)
+    + [Example Output](#example-output)
+  * [Grafana Dashboard](#grafana-dashboard)
+  * [Credits](#credits)
+  * [License](#license)
+
+<small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
+
+
 ## Installation
 ### Download `.exe`
 Coming soon!
