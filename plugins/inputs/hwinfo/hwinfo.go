@@ -119,7 +119,7 @@ func buildFieldsAndTags(sensorReadings SensorReadings) []Metric {
 
 		tags := map[string]string{
 			"sensorId":       sensor.ID(),
-			"sensorInst":     strconv.FormatUint(sensor.SensorInst(), 16),
+			"sensorInst":     strconv.FormatUint(sensor.SensorInst(), 10),
 			"sensorNameOrig": sensor.NameOrig(),
 			"sensorName":     sensor.NameUser(),
 
