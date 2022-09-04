@@ -43,6 +43,8 @@ func (input *HWiNFOInput) Description() string {
 }
 
 func (input *HWiNFOInput) Gather(a telegraf.Accumulator) error {
+	log.Debug().Msg("Gathering metrics...")
+
 	// Gather data
 	data := input.gather()
 
@@ -54,6 +56,7 @@ func (input *HWiNFOInput) Gather(a telegraf.Accumulator) error {
 		}
 	}
 
+	log.Debug().Msg("Done gathering metrics")
 	return nil
 }
 
@@ -76,6 +79,7 @@ func (input *HWiNFOInput) gather() []SensorReadings {
 	if err != nil {
 		log.Fatal().Err(err).Send()
 	}
+	log.Debug().Msgf("Found %d sensors and %d readings", rawData.NumSensorElements(), rawData.NumReadingElements())
 
 	data := []SensorReadings{}
 
