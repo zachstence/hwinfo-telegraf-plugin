@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/hidez8891/shm v0.0.0-20200313135933-0ec4df5f28c7
 	github.com/influxdata/telegraf v1.23.4
-	golang.org/x/text v0.3.7
+	golang.org/x/text v0.3.8
 )
 
 require (
@@ -22,7 +22,6 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
-	github.com/google/martian v2.1.0+incompatible
 	github.com/gosnmp/gosnmp v1.34.0 // indirect
 	github.com/influxdata/line-protocol/v2 v2.2.1 // indirect
 	github.com/influxdata/toml v0.0.0-20190415235208-270119a8ce65 // indirect
@@ -35,7 +34,6 @@ require (
 	github.com/prometheus/common v0.37.0 // indirect
 	github.com/prometheus/prometheus v1.8.2-0.20210430082741-2a4b8e12bbf2 // indirect
 	github.com/rs/zerolog v1.28.0
-	github.com/sirupsen/logrus v1.9.0
 	github.com/sleepinggenius2/gosmi v0.4.4 // indirect
 	github.com/tidwall/gjson v1.14.1 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
