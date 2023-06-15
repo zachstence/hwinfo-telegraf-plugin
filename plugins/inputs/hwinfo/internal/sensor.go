@@ -19,13 +19,15 @@ type Sensor struct {
 type SensorType string
 
 const (
-	System  SensorType = "system"
-	CPU     SensorType = "cpu"
-	SMART   SensorType = "smart"
-	Drive   SensorType = "drive"
-	GPU     SensorType = "gpu"
-	Network SensorType = "network"
-	Unknown SensorType = "unknown"
+	System        SensorType = "system"
+	CPU           SensorType = "cpu"
+	SMART         SensorType = "smart"
+	Drive         SensorType = "drive"
+	GPU           SensorType = "gpu"
+	Network       SensorType = "network"
+	Windows       SensorType = "windows"
+	MemoryTimings SensorType = "memory-timings"
+	Unknown       SensorType = "unknown"
 )
 
 // NewSensor constructs a Sensor
@@ -78,6 +80,10 @@ func (s *Sensor) SensorType() SensorType {
 		return GPU
 	} else if util.StartsWithLower(name, "network") {
 		return Network
+	} else if util.StartsWithLower(name, "windows") {
+		return Windows
+	} else if util.StartsWithLower(name, "memory timings") {
+		return MemoryTimings
 	} else {
 		return Unknown
 	}
