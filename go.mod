@@ -11,6 +11,7 @@ require (
 require (
 	collectd.org v0.5.0 // indirect
 	github.com/BurntSushi/toml v1.2.0 // indirect
+	github.com/abdfnx/gosh v0.4.0
 	github.com/alecthomas/participle v0.4.1 // indirect
 	github.com/alecthomas/units v0.0.0-20210208195552-ff826a37aa15 // indirect
 	github.com/benbjohnson/clock v1.3.0 // indirect
@@ -45,6 +46,7 @@ require (
 	github.com/wavefronthq/wavefront-sdk-go v0.9.11 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
-	golang.org/x/sys v0.0.0-20220804214406-8e32c043e418 // indirect
+	golang.org/x/exp v0.0.0-20230522175609-2e198f4a06a1
+	golang.org/x/sys v0.1.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 )

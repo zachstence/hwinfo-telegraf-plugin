@@ -1,8 +1,14 @@
 package hwinfo
 
 import (
+	"fmt"
+	"runtime/debug"
 	"strconv"
+	"strings"
 
+	"golang.org/x/exp/slices"
+
+	"github.com/abdfnx/gosh"
 	"github.com/influxdata/telegraf"
 	"github.com/influxdata/telegraf/plugins/inputs"
 	"github.com/rs/zerolog/log"
@@ -11,14 +17,22 @@ import (
 )
 
 // ============================================================================
-// Public inpug plugin interface
+// Public input plugin interface
 // ============================================================================
 
-type HWiNFOInput struct{}
+type HWiNFOInput struct {
+	hwinfoVersion string
+	pluginVersion string
+	shmemVersion  string
+}
 
 func init() {
 	inputs.Add("hwinfo", func() telegraf.Input {
-		return &HWiNFOInput{}
+		return &HWiNFOInput{
+			hwinfoVersion: HWiNFOVersion(),
+			pluginVersion: PluginVersion(),
+			shmemVersion:  SHMemVersion(),
+		}
 	})
 }
 
@@ -52,7 +66,7 @@ func (input *HWiNFOInput) Gather(a telegraf.Accumulator) error {
 	log.Debug().Msg("Converting metrics...")
 	writeCount := 0
 	for _, datum := range data {
-		metrics := buildFieldsAndTags(datum)
+		metrics := input.buildFieldsAndTags(datum)
 		for _, metric := range metrics {
 			a.AddFields("hwinfo", metric.fields, metric.tags)
 			writeCount++
@@ -62,6 +76,37 @@ func (input *HWiNFOInput) Gather(a telegraf.Accumulator) error {
 
 	log.Debug().Msg("Done gathering metrics")
 	return nil
+}
+
+func HWiNFOVersion() string {
+	err, out, errout := gosh.PowershellOutput("(Get-Process HWiNFO64 | Select-Object Path | Get-Item).VersionInfo.ProductVersion")
+	if err != nil {
+		log.Debug().Msgf("Failed to query version of HWiNFO64 process: %v, %s", err, errout)
+		return "unknown"
+	}
+	return strings.TrimSpace(out)
+}
+
+func PluginVersion() string {
+	bi, ok := debug.ReadBuildInfo()
+	if !ok {
+		return "unknown"
+	}
+
+	i := slices.IndexFunc(bi.Deps, func(module *debug.Module) bool { return module.Path == "github.com/zachstence/hwinfo-telegraf-plugin" })
+	if i == -1 {
+		return "unknown"
+	}
+	return bi.Deps[i].Version
+}
+
+func SHMemVersion() string {
+	rawData, err := hwinfoInternal.Read()
+	if err != nil {
+		log.Fatal().Err(err).Send()
+	}
+
+	return fmt.Sprintf("v%d rev%d", rawData.Version(), rawData.Revision())
 }
 
 // ============================================================================
@@ -118,7 +163,7 @@ func (input *HWiNFOInput) gather() []SensorReadings {
 	return data
 }
 
-func buildFieldsAndTags(sensorReadings SensorReadings) []Metric {
+func (hwinfo *HWiNFOInput) buildFieldsAndTags(sensorReadings SensorReadings) []Metric {
 	metrics := []Metric{}
 
 	sensor := sensorReadings.sensor
@@ -133,6 +178,10 @@ func buildFieldsAndTags(sensorReadings SensorReadings) []Metric {
 		}
 
 		tags := map[string]string{
+			"hwinfoVersion": hwinfo.hwinfoVersion,
+			"pluginVersion": hwinfo.pluginVersion,
+			"shmemVersion":  hwinfo.shmemVersion,
+
 			"sensorId":       sensor.ID(),
 			"sensorInst":     strconv.FormatUint(sensor.SensorInst(), 10),
 			"sensorType":     string(sensor.SensorType()),
