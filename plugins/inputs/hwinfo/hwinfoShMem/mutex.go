@@ -1,6 +1,6 @@
-package mutex
+package hwinfoShMem
 
-// #include "../hwisenssm2.h"
+// #include "hwisenssm2.h"
 import "C"
 import (
 	"errors"
@@ -8,14 +8,14 @@ import (
 	"sync"
 	"unsafe"
 
-	log "github.com/rs/zerolog/log"
+	"github.com/rs/zerolog/log"
 )
 
 var ghnd C.HANDLE
 var imut = sync.Mutex{}
 
 // Lock the global mutex
-func Lock() {
+func LockMutex() {
 	imut.Lock()
 	lpName := C.CString(C.HWiNFO_SENSORS_SM2_MUTEX)
 	defer C.free(unsafe.Pointer(lpName))
@@ -28,7 +28,7 @@ func Lock() {
 }
 
 // Unlock the global mutex
-func Unlock() {
+func UnlockMutex() {
 	defer imut.Unlock()
 	C.CloseHandle(ghnd)
 }

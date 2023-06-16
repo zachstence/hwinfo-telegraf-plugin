@@ -1,4 +1,4 @@
-package hwinfo
+package hwinfoShMem
 
 /*
 #include <windows.h>
@@ -7,8 +7,6 @@ package hwinfo
 import "C"
 import (
 	"unsafe"
-
-	"github.com/zachstence/hwinfo-telegraf-plugin/plugins/inputs/hwinfo/internal/util"
 )
 
 // ReadingType enum of value/unit type for reading
@@ -74,17 +72,17 @@ func (r *Reading) ReadingID() uint64 {
 
 // LabelOrig original label (e.g. "Chassis2 Fan")
 func (r *Reading) LabelOrig() string {
-	return util.DecodeCharPtr(unsafe.Pointer(&r.cr.szLabelOrig), C.HWiNFO_SENSORS_STRING_LEN2)
+	return DecodeCharPtr(unsafe.Pointer(&r.cr.szLabelOrig), C.HWiNFO_SENSORS_STRING_LEN2)
 }
 
 // LabelUser label displayed, which might have been renamed by user
 func (r *Reading) LabelUser() string {
-	return util.DecodeCharPtr(unsafe.Pointer(&r.cr.szLabelUser), C.HWiNFO_SENSORS_STRING_LEN2)
+	return DecodeCharPtr(unsafe.Pointer(&r.cr.szLabelUser), C.HWiNFO_SENSORS_STRING_LEN2)
 }
 
 // Unit e.g. "RPM"
 func (r *Reading) Unit() string {
-	return util.DecodeCharPtr(unsafe.Pointer(&r.cr.szUnit), C.HWiNFO_UNIT_STRING_LEN)
+	return DecodeCharPtr(unsafe.Pointer(&r.cr.szUnit), C.HWiNFO_UNIT_STRING_LEN)
 }
 
 func (r *Reading) valuePtr() unsafe.Pointer {

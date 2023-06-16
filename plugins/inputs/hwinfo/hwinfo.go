@@ -1,7 +1,6 @@
 package hwinfo
 
 import (
-	"fmt"
 	"runtime/debug"
 	"strconv"
 	"strings"
@@ -13,14 +12,14 @@ import (
 	"github.com/influxdata/telegraf/plugins/inputs"
 	"github.com/rs/zerolog/log"
 
-	hwinfoInternal "github.com/zachstence/hwinfo-telegraf-plugin/plugins/inputs/hwinfo/internal"
+	shmem "github.com/zachstence/hwinfo-telegraf-plugin/plugins/inputs/hwinfo/hwinfoShMem"
 )
 
 // ============================================================================
 // Public input plugin interface
 // ============================================================================
 
-type HWiNFOInput struct {
+type HWiNFOInputPlugin struct {
 	hwinfoVersion string
 	pluginVersion string
 	shmemVersion  string
@@ -28,35 +27,33 @@ type HWiNFOInput struct {
 
 func init() {
 	inputs.Add("hwinfo", func() telegraf.Input {
-		return &HWiNFOInput{
+		return &HWiNFOInputPlugin{
 			hwinfoVersion: HWiNFOVersion(),
 			pluginVersion: PluginVersion(),
-			shmemVersion:  SHMemVersion(),
 		}
 	})
 }
 
-func (input *HWiNFOInput) Init() error {
+func (input *HWiNFOInputPlugin) Init() error {
 	return nil
 }
 
-func (input *HWiNFOInput) Stop() {
-	// Make sure mutex is unlocked before stopping
-	hwinfoInternal.UnlockMutex()
+func (input *HWiNFOInputPlugin) Stop() {
+	shmem.UnlockMutex()
 }
 
-func (input *HWiNFOInput) SampleConfig() string {
+func (input *HWiNFOInputPlugin) SampleConfig() string {
 	return `
 [[inputs.hwinfo]]
 	# no config
 `
 }
 
-func (input *HWiNFOInput) Description() string {
+func (input *HWiNFOInputPlugin) Description() string {
 	return "Gather Windows system hardware information from HWiNFO"
 }
 
-func (input *HWiNFOInput) Gather(a telegraf.Accumulator) error {
+func (input *HWiNFOInputPlugin) Gather(a telegraf.Accumulator) error {
 	log.Debug().Msg("Gathering metrics...")
 
 	// Gather data
@@ -100,15 +97,6 @@ func PluginVersion() string {
 	return bi.Deps[i].Version
 }
 
-func SHMemVersion() string {
-	rawData, err := hwinfoInternal.Read()
-	if err != nil {
-		log.Fatal().Err(err).Send()
-	}
-
-	return fmt.Sprintf("v%d rev%d", rawData.Version(), rawData.Revision())
-}
-
 // ============================================================================
 // Private helpers
 // ============================================================================
@@ -119,51 +107,44 @@ type Metric struct {
 }
 
 type SensorReadings struct {
-	sensor   hwinfoInternal.Sensor
-	readings []hwinfoInternal.Reading
+	sensor   shmem.Sensor
+	readings []shmem.Reading
 }
 
-func (input *HWiNFOInput) gather() []SensorReadings {
-	rawData, err := hwinfoInternal.Read()
+func (input *HWiNFOInputPlugin) gather() []SensorReadings {
+	rawData, err := shmem.Read()
 	if err != nil {
 		log.Fatal().Err(err).Send()
 	}
-	log.Debug().Msgf("Found %d sensors with a total of %d readings", rawData.NumSensorElements(), rawData.NumReadingElements())
+	input.shmemVersion = rawData.Version()
 
 	data := []SensorReadings{}
 
 	// Get sensors
-	for s := range rawData.IterSensors() {
-		if s.Error != nil {
-			log.Error().Err(s.Error).Send()
-		} else {
-			data = append(data, SensorReadings{
-				sensor:   s.Sensor,
-				readings: []hwinfoInternal.Reading{},
-			})
-		}
+	for _, s := range rawData.Sensors() {
+		data = append(data, SensorReadings{
+			sensor:   s,
+			readings: []shmem.Reading{},
+		})
 	}
-	log.Debug().Msgf("Processed %d sensors", rawData.NumSensorElements())
+	log.Debug().Msgf("Processed %d sensors", rawData.Header().NumSensorElements())
 
 	// Get readings
-	for r := range rawData.IterReadings() {
-		if r.Error != nil {
-			log.Error().Err(r.Error).Send()
-		} else {
-			sensorIndex := int(r.Reading.SensorIndex())
-			if sensorIndex < len(data) {
-				data[sensorIndex].readings = append(data[sensorIndex].readings, r.Reading)
-			} else {
-				log.Error().Msgf("sensor index out of range, attempting to access index %d, but %d sensors found ", sensorIndex, len(data))
-			}
+	for _, r := range rawData.Readings() {
+		sensorIndex := int(r.SensorIndex())
+		if sensorIndex >= len(data) {
+			log.Error().Msgf("sensor index out of range, attempting to access index %d, but %d sensors found ", sensorIndex, len(data))
+			continue
 		}
+
+		data[sensorIndex].readings = append(data[sensorIndex].readings, r)
 	}
-	log.Debug().Msgf("Processed %d readings", rawData.NumReadingElements())
+	log.Debug().Msgf("Processed %d readings", rawData.Header().NumReadingElements())
 
 	return data
 }
 
-func (hwinfo *HWiNFOInput) buildFieldsAndTags(sensorReadings SensorReadings) []Metric {
+func (hwinfo *HWiNFOInputPlugin) buildFieldsAndTags(sensorReadings SensorReadings) []Metric {
 	metrics := []Metric{}
 
 	sensor := sensorReadings.sensor
